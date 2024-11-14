@@ -1,12 +1,13 @@
 from django.shortcuts import render,redirect
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from django.db.models import Q
 from rest_framework.views import APIView
 from django.http import JsonResponse
+from rest_framework.permissions import IsAuthenticated
 
-from .serializers import AdvocateSerializer
-from .models import Advocate
+from .serializers import AdvocateSerializer,CompanySerializer
+from .models import Advocate,Company
 
  
 @api_view(['GET'])
@@ -14,8 +15,8 @@ def endpoint(request):
   data = ['/advocates','advocates/:username']
   return Response(data)
 
-
 @api_view(['GET','POST'])
+@permission_classes([IsAuthenticated])
 def advocates_list(request):
   if request.method == 'GET':
     # /advocates/?query=dennis
@@ -35,14 +36,15 @@ def advocates_list(request):
     return redirect('advocates')
 
 
-
+@permission_classes([IsAuthenticated])
 class AdvocateDetail(APIView):
 
   def get_object(self,username):
-    try:
-      return Advocate.objects.get(username=username)
-    except:
-      raise JsonResponse('Advocate does not exist!')
+        try:
+            advocate = Advocate.objects.get(username=username)
+            return advocate
+        except Advocate.DoesNotExist:
+            raise JsonResponse("Advocate does not exist!",safe=False)
     
   def get(self,request,username):
     advocate = self.get_object(username)
@@ -62,6 +64,13 @@ class AdvocateDetail(APIView):
     advocate = self.get_object(username)
     advocate.delete()
     return redirect('advocates')
+  
+
+@api_view(['GET'])
+def companies_list(request):
+   companies = Company.objects.all()
+   serializer = CompanySerializer(companies,many=True)
+   return Response(serializer.data)
  
  
 # @api_view(['GET','PUT','DELETE'])
