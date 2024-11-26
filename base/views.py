@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from rest_framework.decorators import api_view,permission_classes
+from rest_framework.decorators import api_view,permission_classes,authentication_classes
 from rest_framework.response import Response
 from django.db.models import Q
 from rest_framework.views import APIView
@@ -16,7 +16,6 @@ def endpoint(request):
   return Response(data)
 
 @api_view(['GET','POST'])
-@permission_classes([IsAuthenticated])
 def advocates_list(request):
   if request.method == 'GET':
     # /advocates/?query=dennis
@@ -36,7 +35,7 @@ def advocates_list(request):
     return redirect('advocates')
 
 
-@permission_classes([IsAuthenticated])
+ 
 class AdvocateDetail(APIView):
 
   def get_object(self,username):
